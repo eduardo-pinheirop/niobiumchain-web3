@@ -1,15 +1,28 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '../components/Button'
 import { useVehicleTracking, useVehicleInfo } from '../hooks/useVehicleTracking'
 import { Car } from 'lucide-react'
 
 export function Vehicles() {
   const { isConnected } = useAccount()
-  const [searchVehicleId, setSearchVehicleId] = useState('')
+  const [vehicleInput, setVehicleInput] = useState('')
+  const [searchVehicleId, setSearchVehicleId] = useState<number | null>(null)
+  const [showQR, setShowQR] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const { vehicle } = useVehicleInfo(Number(searchVehicleId))
-  const { createNewVehicle, isPending, isConfirming } = useVehicleTracking()
+  const { vehicle, isLoading: vehicleLoading, refetch } = useVehicleInfo(
+    searchVehicleId ?? 0,
+    searchVehicleId !== null,
+  )
+  const { createNewVehicle, isPending, isConfirming, isConfirmed } = useVehicleTracking()
+
+  useEffect(() => {
+    if (isConfirmed) {
+      setShowCreateForm(false)
+      refetch()
+    }
+  }, [isConfirmed, refetch])
 
   const [formData, setFormData] = useState({
     vin: '',
@@ -149,49 +162,71 @@ export function Vehicles() {
         <div className="flex gap-4">
           <div className="flex-1">
             <input
-              type="text"
+              type="number"
               placeholder="ID do Veículo"
-              value={searchVehicleId}
-              onChange={(e) => setSearchVehicleId(e.target.value)}
+              value={vehicleInput}
+              onChange={(e) => setVehicleInput(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
-          <Button disabled={!isConnected}>
+          <Button onClick={() => { setShowQR(false); setSearchVehicleId(vehicleInput === '' ? null : Number(vehicleInput)) }}>
             Buscar
           </Button>
         </div>
       </div>
 
       {/* Vehicle Details */}
-      {searchVehicleId && vehicle && (
+      {searchVehicleId !== null && (
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">Detalhes do Veículo #{searchVehicleId}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-gray-600">VIN</p>
-              <p className="font-medium text-gray-900">{vehicle.vin}</p>
+          {vehicleLoading ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              <p className="mt-2 text-gray-600">Carregando da blockchain...</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Fabricante</p>
-              <p className="font-medium text-gray-900">{vehicle.make}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Modelo</p>
-              <p className="font-medium text-gray-900">{vehicle.model}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Ano</p>
-              <p className="font-medium text-gray-900">{vehicle.year}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Tipo</p>
-              <p className="font-medium text-gray-900">{vehicle.vehicleType}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Localização</p>
-              <p className="font-medium text-gray-900">{vehicle.currentLocation}</p>
-            </div>
-          </div>
+          ) : !vehicle ? (
+            <p className="text-gray-500 text-center py-8">Veículo #{searchVehicleId} não encontrado.</p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-900">Detalhes do Veículo #{searchVehicleId}</h2>
+                <Button variant="outline" onClick={() => setShowQR((v) => !v)}>
+                  {showQR ? 'Ocultar QR' : 'QR Code'}
+                </Button>
+              </div>
+              {showQR && (
+                <div className="flex flex-col items-center mb-6 p-4 bg-gray-50 rounded-lg">
+                  <QRCodeSVG value={`niobium-vehicle:${vehicle.vin}`} size={160} />
+                  <p className="mt-2 text-sm text-gray-600 break-all text-center">niobium-vehicle:{vehicle.vin}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600">VIN</p>
+                  <p className="font-medium text-gray-900">{vehicle.vin}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Fabricante</p>
+                  <p className="font-medium text-gray-900">{vehicle.make}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Modelo</p>
+                  <p className="font-medium text-gray-900">{vehicle.model}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Ano</p>
+                  <p className="font-medium text-gray-900">{vehicle.year.toString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Tipo</p>
+                  <p className="font-medium text-gray-900">{vehicle.vehicleType}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Localização</p>
+                  <p className="font-medium text-gray-900">{vehicle.currentLocation}</p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </main>

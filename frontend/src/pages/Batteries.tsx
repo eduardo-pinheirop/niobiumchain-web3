@@ -1,15 +1,28 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '../components/Button'
 import { useBatteryTracking, useBatteryInfo } from '../hooks/useBatteryTracking'
 import { Battery } from 'lucide-react'
 
 export function Batteries() {
   const { isConnected } = useAccount()
-  const [searchBatteryId, setSearchBatteryId] = useState('')
+  const [batteryInput, setBatteryInput] = useState('')
+  const [searchBatteryId, setSearchBatteryId] = useState<number | null>(null)
+  const [showQR, setShowQR] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const { battery } = useBatteryInfo(Number(searchBatteryId))
-  const { createNewBattery, isPending, isConfirming } = useBatteryTracking()
+  const { battery, isLoading: batteryLoading, refetch } = useBatteryInfo(
+    searchBatteryId ?? 0,
+    searchBatteryId !== null,
+  )
+  const { createNewBattery, isPending, isConfirming, isConfirmed } = useBatteryTracking()
+
+  useEffect(() => {
+    if (isConfirmed) {
+      setShowCreateForm(false)
+      refetch()
+    }
+  }, [isConfirmed, refetch])
 
   const [formData, setFormData] = useState({
     serialNumber: '',
@@ -197,54 +210,83 @@ export function Batteries() {
         <div className="flex gap-4">
           <div className="flex-1">
             <input
-              type="text"
+              type="number"
               placeholder="ID da Bateria"
-              value={searchBatteryId}
-              onChange={(e) => setSearchBatteryId(e.target.value)}
+              value={batteryInput}
+              onChange={(e) => setBatteryInput(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
-          <Button disabled={!isConnected}>
+          <Button onClick={() => { setShowQR(false); setSearchBatteryId(batteryInput === '' ? null : Number(batteryInput)) }}>
             Buscar
           </Button>
         </div>
       </div>
 
       {/* Battery Details */}
-      {searchBatteryId && battery && (
+      {searchBatteryId !== null && (
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Detalhes da Bateria #{searchBatteryId}</h2>
-            <Button variant="outline">
-              QR Code
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-gray-600">Número de Série</p>
-              <p className="font-medium text-gray-900">{battery.serialNumber}</p>
+          {batteryLoading ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              <p className="mt-2 text-gray-600">Carregando da blockchain...</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Modelo</p>
-              <p className="font-medium text-gray-900">{battery.model}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Capacidade</p>
-              <p className="font-medium text-gray-900">{battery.capacity} kWh</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Voltagem</p>
-              <p className="font-medium text-gray-900">{battery.voltage} V</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Química</p>
-              <p className="font-medium text-gray-900">{battery.chemistry}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Fabricante</p>
-              <p className="font-medium text-gray-900">{battery.manufacturer}</p>
-            </div>
-          </div>
+          ) : !battery ? (
+            <p className="text-gray-500 text-center py-8">Bateria #{searchBatteryId} não encontrada.</p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-900">Detalhes da Bateria #{searchBatteryId}</h2>
+                <Button variant="outline" onClick={() => setShowQR((v) => !v)}>
+                  {showQR ? 'Ocultar QR' : 'QR Code'}
+                </Button>
+              </div>
+              {showQR && (
+                <div className="flex flex-col items-center mb-6 p-4 bg-gray-50 rounded-lg">
+                  <QRCodeSVG value={battery.qrCode || `niobium-battery:${searchBatteryId}`} size={160} />
+                  <p className="mt-2 text-sm text-gray-600 break-all text-center">{battery.qrCode || `niobium-battery:${searchBatteryId}`}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600">Número de Série</p>
+                  <p className="font-medium text-gray-900">{battery.serialNumber}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Modelo</p>
+                  <p className="font-medium text-gray-900">{battery.model}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Capacidade</p>
+                  <p className="font-medium text-gray-900">{battery.capacity.toString()} kWh</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Voltagem</p>
+                  <p className="font-medium text-gray-900">{battery.voltage.toString()} V</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Química</p>
+                  <p className="font-medium text-gray-900">{battery.chemistry}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Fabricante</p>
+                  <p className="font-medium text-gray-900">{battery.manufacturer}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Localização Atual</p>
+                  <p className="font-medium text-gray-900">{battery.currentLocation}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Lote de Nióbio</p>
+                  <p className="font-medium text-gray-900">#{battery.niobiumBatchId.toString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Instalada em Veículo</p>
+                  <p className="font-medium text-gray-900">{battery.inVehicle ? `Veículo #${battery.vehicleId.toString()}` : 'Não'}</p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </main>

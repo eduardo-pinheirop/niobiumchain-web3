@@ -2,43 +2,42 @@ import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Button } from '../components/Button'
 import { useBatchHistory } from '../hooks/useSupplyChain'
-import { Package, ChevronRight, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { STEP_TYPES, STEP_STATUS } from '../lib/contracts'
+import { Package, ChevronRight, CheckCircle, Clock, AlertCircle, XCircle, MinusCircle } from 'lucide-react'
 
 export function SupplyChain() {
   const { isConnected } = useAccount()
-  const [searchBatchId, setSearchBatchId] = useState('')
-  const { isLoading } = useBatchHistory(Number(searchBatchId))
+  const [batchInput, setBatchInput] = useState('')
+  const [searchBatchId, setSearchBatchId] = useState<number | null>(null)
+  const { history, isLoading } = useBatchHistory(searchBatchId ?? 0, searchBatchId !== null)
 
-  const steps = [
-    { id: 1, name: 'Mineração', status: 'completed', time: '2025-05-30 10:00' },
-    { id: 2, name: 'Transporte', status: 'completed', time: '2025-05-30 14:00' },
-    { id: 3, name: 'Processamento', status: 'in_progress', time: '2025-05-30 16:00' },
-    { id: 4, name: 'Embalagem', status: 'pending', time: '' },
-    { id: 5, name: 'Porto (Carregamento)', status: 'pending', time: '' },
-    { id: 6, name: 'Embarque', status: 'pending', time: '' },
-  ]
+  const formatTime = (ts: bigint) =>
+    ts > 0n ? new Date(Number(ts) * 1000).toLocaleString('pt-BR') : ''
 
-  const getStatusIcon = (status: string) => {
+  // status: 0 Pendente, 1 Em Progresso, 2 Concluído, 3 Falhou, 4 Pulada
+  const getStatusIcon = (status: number) => {
     switch (status) {
-      case 'completed':
+      case 2:
         return <CheckCircle className="w-5 h-5 text-green-600" />
-      case 'in_progress':
+      case 1:
         return <Clock className="w-5 h-5 text-blue-600" />
-      case 'pending':
-        return <AlertCircle className="w-5 h-5 text-gray-400" />
+      case 3:
+        return <XCircle className="w-5 h-5 text-red-600" />
+      case 4:
+        return <MinusCircle className="w-5 h-5 text-gray-400" />
       default:
         return <AlertCircle className="w-5 h-5 text-gray-400" />
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: number) => {
     switch (status) {
-      case 'completed':
+      case 2:
         return 'bg-green-100 text-green-800'
-      case 'in_progress':
+      case 1:
         return 'bg-blue-100 text-blue-800'
-      case 'pending':
-        return 'bg-gray-100 text-gray-800'
+      case 3:
+        return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -71,50 +70,60 @@ export function SupplyChain() {
         <div className="flex gap-4">
           <div className="flex-1">
             <input
-              type="text"
+              type="number"
               placeholder="ID do Lote"
-              value={searchBatchId}
-              onChange={(e) => setSearchBatchId(e.target.value)}
+              value={batchInput}
+              onChange={(e) => setBatchInput(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
-          <Button disabled={!isConnected}>
+          <Button onClick={() => setSearchBatchId(batchInput === '' ? null : Number(batchInput))}>
             Buscar
           </Button>
         </div>
       </div>
 
       {/* Timeline */}
-      {searchBatchId && (
+      {searchBatchId !== null && (
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Timeline do Lote #{searchBatchId}</h2>
-          
+
           {isLoading ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              <p className="mt-2 text-gray-600">Carregando...</p>
+              <p className="mt-2 text-gray-600">Carregando da blockchain...</p>
             </div>
+          ) : !history || history.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">Nenhuma etapa encontrada para este lote.</p>
           ) : (
             <div className="space-y-4">
-              {steps.map((step, index) => (
-                <div key={step.id} className="flex items-start gap-4">
+              {history.map((step, index) => (
+                <div key={step.stepId.toString()} className="flex items-start gap-4">
                   <div className="flex flex-col items-center">
                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                       {getStatusIcon(step.status)}
                     </div>
-                    {index < steps.length - 1 && (
+                    {index < history.length - 1 && (
                       <div className="w-0.5 h-16 bg-gray-200 mt-2" />
                     )}
                   </div>
                   <div className="flex-1 bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-gray-900">{step.name}</h3>
+                      <h3 className="font-medium text-gray-900">
+                        {STEP_TYPES[step.stepType] ?? `Etapa ${step.stepType}`}
+                      </h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(step.status)}`}>
-                        {step.status === 'completed' ? 'Concluído' : step.status === 'in_progress' ? 'Em Progresso' : 'Pendente'}
+                        {STEP_STATUS[step.status] ?? 'Desconhecido'}
                       </span>
                     </div>
-                    {step.time && (
-                      <p className="text-sm text-gray-600">{step.time}</p>
+                    {step.location && (
+                      <p className="text-sm text-gray-600">Local: {step.location}</p>
+                    )}
+                    {formatTime(step.startTime) && (
+                      <p className="text-sm text-gray-500">Início: {formatTime(step.startTime)}</p>
+                    )}
+                    {formatTime(step.endTime) && (
+                      <p className="text-sm text-gray-500">Fim: {formatTime(step.endTime)}</p>
                     )}
                   </div>
                 </div>

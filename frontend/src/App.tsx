@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
+import { Package } from 'lucide-react'
 import { config } from './lib/wagmi'
+import { WalletConnect } from './components/WalletConnect'
 import { Dashboard } from './pages/Dashboard'
 import { SupplyChain } from './pages/SupplyChain'
 import { Batteries } from './pages/Batteries'
@@ -40,6 +42,19 @@ function App() {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <div className="min-h-screen bg-gray-50">
+          {/* Top bar com marca + carteira */}
+          <header className="bg-white border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16">
+                <div className="flex items-center gap-2">
+                  <Package className="w-8 h-8 text-primary-600" />
+                  <h1 className="text-xl font-bold text-gray-900">NiobiumChain</h1>
+                </div>
+                <WalletConnect />
+              </div>
+            </div>
+          </header>
+
           {/* Navigation */}
           <nav className="bg-white border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
