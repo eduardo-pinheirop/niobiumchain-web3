@@ -52,6 +52,12 @@ jobs:
         run: |
           git checkout -b page || git checkout page
 
+      - name: Copy build to temporary location
+        run: |
+          mkdir -p /tmp/frontend-build
+          cp -r frontend/dist/* /tmp/frontend-build/
+          cp -r frontend/dist/.[!.]* /tmp/frontend-build/ 2>/dev/null || true
+
       - name: Clear page branch
         run: |
           git rm -rf . || true
@@ -59,8 +65,8 @@ jobs:
 
       - name: Copy build to root
         run: |
-          cp -r frontend/dist/* .
-          cp -r frontend/dist/.[!.]* . 2>/dev/null || true
+          cp -r /tmp/frontend-build/* .
+          cp -r /tmp/frontend-build/.[!.]* . 2>/dev/null || true
 
       - name: Add README for page branch
         run: |
