@@ -1,79 +1,79 @@
 {
   "network": "sepolia",
   "deployer": "0x66682BBeD9e540017967692cCdd069fE5F833888",
-  "timestamp": "2026-06-03T01:06:01.229Z",
+  "timestamp": "2026-06-03T12:55:37.725Z",
   "contracts": {
-    "SupplyChain": "0x6bf1149D3DE1cf1a6Dfc7267310f844646868ba6",
-    "NiobiumDID": "0x1570cb4dfFEbDb74B0Ee4459C1889af6bcf5c5D0",
-    "QRCodeSystem": "0xB129009625296b0F92b1f7639af48ca2f8063429",
-    "CVOracle": "0x5151A34EaC7bA08cd6B540b32cD30316218A2287",
-    "MiningStep": "0x23222C45505576AC35A5f28458D02d8E715E48A7",
-    "TransportStep": "0x190A9D2f206dbeb72Ce8b88Dc2603745fB5f50dB",
-    "ProcessingStep": "0x5850F0809713810b2CA318A48ECA8667F665a9F8",
-    "PackagingStep": "0xFA75D96a1F0297FB1de7547B09837Ea98d434570",
-    "PortStep": "0x80BD976cB588cD2F9aD9Ac671FB19174E9F3172b",
-    "BatteryTracking": "0x0DE5DeE3B6946BD2A540558Fbb5E17163f296dC7",
-    "VehicleTracking": "0x6ae32434d9Ec8C188195326bf321dBe9Ee77C062",
-    "NiobiumToken": "0xa9e0Cc843d7C2D4f2Ead780CD2F806C080392415",
-    "CarbonCredit": "0x2056172c469a60E5290C27661CCF7D5785F8635B",
-    "BatteryPassport": "0x1Cf9d6cF0Fa979D09761D4f41bc78267f78977bE"
+    "SupplyChain": "0x7f76C4F89E70C31B12Ba14bfB943Ce206cf1809b",
+    "NiobiumDID": "0xd14430836CF34B3B97b1D87B52FF47bff03b3F8a",
+    "QRCodeSystem": "0x9E54710842A1E752D618604567B3c53A4ca7baca",
+    "CVOracle": "0x455Bc25088f40c688B76974dF34626219931aD19",
+    "MiningStep": "0x0b4FEddA266AEf25Ba3Dbc3fdDB61399A799ba82",
+    "TransportStep": "0xA1651eACb4031f1Fa25929d20d73B88b17Da92A6",
+    "ProcessingStep": "0xB7eFab8c5180F9E9024E68D8CD0c3241b4915f23",
+    "PackagingStep": "0xcad5859Ef00A9e9cF84FE5187F5b2E12F6791793",
+    "PortStep": "0xFae5985CAaE2526dDAc54842DE72c7ceE2fCa9a1",
+    "BatteryTracking": "0x812E3EfE3dE707A1bf92d35761473722dA843974",
+    "VehicleTracking": "0xD12392bD00E2F31899165311183380e996C56A48",
+    "NiobiumToken": "0x6bF099aebc812088bF6aCFF58663Fb3AA8Bfdc49",
+    "CarbonCredit": "0x16B0d229f6C2F5879aD424974ECDAc126E844FF1",
+    "BatteryPassport": "0xfc6e1Ece231F3a12EB46619f45Ccc413b651e3fF"
   },
   "deploymentOrder": [
     {
       "name": "SupplyChain",
-      "address": "0x6bf1149D3DE1cf1a6Dfc7267310f844646868ba6"
+      "address": "0x7f76C4F89E70C31B12Ba14bfB943Ce206cf1809b"
     },
     {
       "name": "NiobiumDID",
-      "address": "0x1570cb4dfFEbDb74B0Ee4459C1889af6bcf5c5D0"
+      "address": "0xd14430836CF34B3B97b1D87B52FF47bff03b3F8a"
     },
     {
       "name": "QRCodeSystem",
-      "address": "0xB129009625296b0F92b1f7639af48ca2f8063429"
+      "address": "0x9E54710842A1E752D618604567B3c53A4ca7baca"
     },
     {
       "name": "CVOracle",
-      "address": "0x5151A34EaC7bA08cd6B540b32cD30316218A2287"
+      "address": "0x455Bc25088f40c688B76974dF34626219931aD19"
     },
     {
       "name": "MiningStep",
-      "address": "0x23222C45505576AC35A5f28458D02d8E715E48A7"
+      "address": "0x0b4FEddA266AEf25Ba3Dbc3fdDB61399A799ba82"
     },
     {
       "name": "TransportStep",
-      "address": "0x190A9D2f206dbeb72Ce8b88Dc2603745fB5f50dB"
+      "address": "0xA1651eACb4031f1Fa25929d20d73B88b17Da92A6"
     },
     {
       "name": "ProcessingStep",
-      "address": "0x5850F0809713810b2CA318A48ECA8667F665a9F8"
+      "address": "0xB7eFab8c5180F9E9024E68D8CD0c3241b4915f23"
     },
     {
       "name": "PackagingStep",
-      "address": "0xFA75D96a1F0297FB1de7547B09837Ea98d434570"
+      "address": "0xcad5859Ef00A9e9cF84FE5187F5b2E12F6791793"
     },
     {
       "name": "PortStep",
-      "address": "0x80BD976cB588cD2F9aD9Ac671FB19174E9F3172b"
+      "address": "0xFae5985CAaE2526dDAc54842DE72c7ceE2fCa9a1"
     },
     {
       "name": "BatteryTracking",
-      "address": "0x0DE5DeE3B6946BD2A540558Fbb5E17163f296dC7"
+      "address": "0x812E3EfE3dE707A1bf92d35761473722dA843974"
     },
     {
       "name": "VehicleTracking",
-      "address": "0x6ae32434d9Ec8C188195326bf321dBe9Ee77C062"
+      "address": "0xD12392bD00E2F31899165311183380e996C56A48"
     },
     {
       "name": "NiobiumToken",
-      "address": "0xa9e0Cc843d7C2D4f2Ead780CD2F806C080392415"
+      "address": "0x6bF099aebc812088bF6aCFF58663Fb3AA8Bfdc49"
     },
     {
       "name": "CarbonCredit",
-      "address": "0x2056172c469a60E5290C27661CCF7D5785F8635B"
+      "address": "0x16B0d229f6C2F5879aD424974ECDAc126E844FF1"
     },
     {
       "name": "BatteryPassport",
-      "address": "0x1Cf9d6cF0Fa979D09761D4f41bc78267f78977bE"
+      "address": "0xfc6e1Ece231F3a12EB46619f45Ccc413b651e3fF"
     }
   ]
 }

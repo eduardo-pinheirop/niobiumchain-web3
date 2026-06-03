@@ -12,7 +12,7 @@ export function Dashboard() {
   const { data: protocol, isLoading: statsLoading, refetch } = useProtocolStats()
 
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [batchForm, setBatchForm] = useState({ did: '', initialStepType: 0, location: '' })
+  const [batchForm, setBatchForm] = useState({ did: '', initialStepType: 0, location: '', observation: '' })
 
   useEffect(() => {
     if (isConfirmed) {
@@ -27,6 +27,7 @@ export function Dashboard() {
       did: batchForm.did || `did:niobium:${Date.now()}`,
       initialStepType: Number(batchForm.initialStepType),
       location: batchForm.location,
+      observation: batchForm.observation,
     })
   }
 
@@ -121,6 +122,18 @@ export function Dashboard() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 required
               />
+            </div>
+            <div className="md:col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Observação</label>
+              <input
+                type="text"
+                maxLength={140}
+                placeholder="Observação (opcional)"
+                value={batchForm.observation}
+                onChange={(e) => setBatchForm({ ...batchForm, observation: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              />
+              <p className="mt-1 text-xs text-gray-400 text-right">{batchForm.observation.length}/140</p>
             </div>
             <div className="md:col-span-3 flex items-center gap-4">
               <Button type="submit" disabled={isPending || isConfirming}>

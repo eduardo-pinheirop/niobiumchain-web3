@@ -27,17 +27,40 @@ export function useSupplyChain() {
     did: string
     initialStepType: number
     location: string
+    observation?: string
   }) => {
     writeContract({
       address: CONTRACT_ADDRESSES.supplyChain,
       abi: SUPPLY_CHAIN_ABI,
       functionName: 'createBatch',
-      args: [params.did, params.initialStepType, params.location] as const,
+      args: [params.did, params.initialStepType, params.location, params.observation ?? ''] as const,
+    })
+  }
+
+  const addStep = (params: {
+    stepType: number
+    batchId: number
+    location: string
+    observation?: string
+    previousSteps?: number[]
+  }) => {
+    writeContract({
+      address: CONTRACT_ADDRESSES.supplyChain,
+      abi: SUPPLY_CHAIN_ABI,
+      functionName: 'createStep',
+      args: [
+        params.stepType,
+        BigInt(params.batchId),
+        params.location,
+        params.observation ?? '',
+        (params.previousSteps ?? []).map((s) => BigInt(s)),
+      ] as const,
     })
   }
 
   return {
     createNewBatch,
+    addStep,
     hash,
     isPending,
     isConfirming,

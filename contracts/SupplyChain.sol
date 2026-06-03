@@ -122,8 +122,10 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
     function createBatch(
         string memory did,
         StepType initialStepType,
-        string memory location
+        string memory location,
+        string memory observation
     ) public onlyRole(OPERATOR_ROLE) whenNotPaused nonReentrant returns (uint256) {
+        require(bytes(observation).length <= 140, "Observation exceeds 140 chars");
         uint256 batchId = batchCounter;
         batchCounter++;
 
@@ -133,6 +135,7 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
             batchId,
             msg.sender,
             location,
+            observation,
             new uint256[](0)
         );
 
@@ -158,17 +161,20 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
      * @param stepType Tipo da etapa
      * @param batchId ID do lote
      * @param location Localização
+     * @param observation Observação livre (máx. 140 caracteres)
      * @param previousSteps IDs das etapas anteriores (workflow flexível)
      */
     function createStep(
         StepType stepType,
         uint256 batchId,
         string memory location,
+        string memory observation,
         uint256[] memory previousSteps
     ) public onlyRole(OPERATOR_ROLE) whenNotPaused nonReentrant returns (uint256) {
         require(batches[batchId].isActive, "Batch is not active");
+        require(bytes(observation).length <= 140, "Observation exceeds 140 chars");
 
-        uint256 stepId = _createStep(stepType, batchId, msg.sender, location, previousSteps);
+        uint256 stepId = _createStep(stepType, batchId, msg.sender, location, observation, previousSteps);
 
         // Atualizar lote
         batches[batchId].currentStepId = stepId;
@@ -190,6 +196,7 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
         uint256 batchId,
         address operator,
         string memory location,
+        string memory observation,
         uint256[] memory previousSteps
     ) internal returns (uint256) {
         uint256 stepId = stepCounter;
@@ -206,7 +213,7 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
             location: location,
             qrCodeHash: "",
             cvDataHash: "",
-            metadata: "",
+            metadata: observation,
             previousSteps: previousSteps,
             nextSteps: new uint256[](0)
         });

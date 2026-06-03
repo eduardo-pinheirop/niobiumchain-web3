@@ -1,15 +1,40 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Button } from '../components/Button'
-import { useBatchHistory } from '../hooks/useSupplyChain'
+import { useBatchHistory, useSupplyChain } from '../hooks/useSupplyChain'
 import { STEP_TYPES, STEP_STATUS } from '../lib/contracts'
 import { Package, ChevronRight, CheckCircle, Clock, AlertCircle, XCircle, MinusCircle } from 'lucide-react'
+
+const OBSERVATION_MAX = 140
 
 export function SupplyChain() {
   const { isConnected } = useAccount()
   const [batchInput, setBatchInput] = useState('')
   const [searchBatchId, setSearchBatchId] = useState<number | null>(null)
-  const { history, isLoading } = useBatchHistory(searchBatchId ?? 0, searchBatchId !== null)
+  const { history, isLoading, refetch } = useBatchHistory(searchBatchId ?? 0, searchBatchId !== null)
+
+  const { addStep, isPending, isConfirming, isConfirmed, error } = useSupplyChain()
+  const [showUpdateForm, setShowUpdateForm] = useState(false)
+  const [stepForm, setStepForm] = useState({ stepType: 0, location: '', observation: '' })
+
+  useEffect(() => {
+    if (isConfirmed) {
+      setShowUpdateForm(false)
+      setStepForm({ stepType: 0, location: '', observation: '' })
+      refetch()
+    }
+  }, [isConfirmed, refetch])
+
+  const handleAddStep = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchBatchId === null) return
+    addStep({
+      stepType: Number(stepForm.stepType),
+      batchId: searchBatchId,
+      location: stepForm.location,
+      observation: stepForm.observation,
+    })
+  }
 
   const formatTime = (ts: bigint) =>
     ts > 0n ? new Date(Number(ts) * 1000).toLocaleString('pt-BR') : ''
@@ -86,7 +111,70 @@ export function SupplyChain() {
       {/* Timeline */}
       {searchBatchId !== null && (
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">Timeline do Lote #{searchBatchId}</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">Timeline do Lote #{searchBatchId}</h2>
+            <Button
+              onClick={() => setShowUpdateForm((v) => !v)}
+              disabled={!isConnected}
+            >
+              {showUpdateForm ? 'Fechar' : 'Atualizar Etapa'}
+            </Button>
+          </div>
+
+          {showUpdateForm && (
+            <form
+              onSubmit={handleAddStep}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-gray-100 rounded-lg p-4 mb-6 bg-gray-50"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nova Etapa</label>
+                <select
+                  value={stepForm.stepType}
+                  onChange={(e) => setStepForm({ ...stepForm, stepType: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                >
+                  {STEP_TYPES.map((label, idx) => (
+                    <option key={label} value={idx}>{label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Localização</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Porto de Santos"
+                  value={stepForm.location}
+                  onChange={(e) => setStepForm({ ...stepForm, location: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Observação</label>
+                <input
+                  type="text"
+                  maxLength={OBSERVATION_MAX}
+                  placeholder="Observação (opcional)"
+                  value={stepForm.observation}
+                  onChange={(e) => setStepForm({ ...stepForm, observation: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                />
+                <p className="mt-1 text-xs text-gray-400 text-right">
+                  {stepForm.observation.length}/{OBSERVATION_MAX}
+                </p>
+              </div>
+              <div className="md:col-span-3 flex items-center gap-4">
+                <Button type="submit" disabled={isPending || isConfirming}>
+                  {isPending ? 'Confirme na carteira...' : isConfirming ? 'Confirmando...' : 'Registrar Etapa'}
+                </Button>
+                {error && (
+                  <span className="text-sm text-red-600 truncate" title={error.message}>
+                    {error.message.split('\n')[0]}
+                  </span>
+                )}
+              </div>
+            </form>
+          )}
 
           {isLoading ? (
             <div className="text-center py-8">
@@ -124,6 +212,11 @@ export function SupplyChain() {
                     )}
                     {formatTime(step.endTime) && (
                       <p className="text-sm text-gray-500">Fim: {formatTime(step.endTime)}</p>
+                    )}
+                    {step.metadata && (
+                      <p className="mt-2 text-sm text-gray-700 italic border-l-2 border-gray-300 pl-2">
+                        Obs.: {step.metadata}
+                      </p>
                     )}
                   </div>
                 </div>

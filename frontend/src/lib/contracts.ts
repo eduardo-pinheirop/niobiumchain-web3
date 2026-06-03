@@ -46,8 +46,22 @@ export const SUPPLY_CHAIN_ABI = [
       { internalType: 'string', name: 'did', type: 'string' },
       { internalType: 'uint8', name: 'initialStepType', type: 'uint8' },
       { internalType: 'string', name: 'location', type: 'string' },
+      { internalType: 'string', name: 'observation', type: 'string' },
     ],
     name: 'createBatch',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint8', name: 'stepType', type: 'uint8' },
+      { internalType: 'uint256', name: 'batchId', type: 'uint256' },
+      { internalType: 'string', name: 'location', type: 'string' },
+      { internalType: 'string', name: 'observation', type: 'string' },
+      { internalType: 'uint256[]', name: 'previousSteps', type: 'uint256[]' },
+    ],
+    name: 'createStep',
     outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -234,14 +248,10 @@ export const VEHICLE_TRACKING_ABI = [
 
 // Endereços dos contratos (lidos do .env; fallback = deploy Sepolia)
 export const CONTRACT_ADDRESSES = {
-  supplyChain: (import.meta.env.VITE_SUPPLY_CHAIN_ADDRESS ||
-    '0x6bf1149D3DE1cf1a6Dfc7267310f844646868ba6') as `0x${string}`,
-  niobiumDID: (import.meta.env.VITE_NIOBIUM_DID_ADDRESS ||
-    '0x1570cb4dfFEbDb74B0Ee4459C1889af6bcf5c5D0') as `0x${string}`,
-  batteryTracking: (import.meta.env.VITE_BATTERY_TRACKING_ADDRESS ||
-    '0x0DE5DeE3B6946BD2A540558Fbb5E17163f296dC7') as `0x${string}`,
-  vehicleTracking: (import.meta.env.VITE_VEHICLE_TRACKING_ADDRESS ||
-    '0x6ae32434d9Ec8C188195326bf321dBe9Ee77C062') as `0x${string}`,
+  supplyChain: (import.meta.env.VITE_SUPPLY_CHAIN_ADDRESS || '0x7f76C4F89E70C31B12Ba14bfB943Ce206cf1809b') as `0x${string}`,
+  niobiumDID: (import.meta.env.VITE_NIOBIUM_DID_ADDRESS || '0xd14430836CF34B3B97b1D87B52FF47bff03b3F8a') as `0x${string}`,
+  batteryTracking: (import.meta.env.VITE_BATTERY_TRACKING_ADDRESS || '0x812E3EfE3dE707A1bf92d35761473722dA843974') as `0x${string}`,
+  vehicleTracking: (import.meta.env.VITE_VEHICLE_TRACKING_ADDRESS || '0xD12392bD00E2F31899165311183380e996C56A48') as `0x${string}`,
 } as const;
 
 // Bloco a partir do qual buscar eventos (evita varrer toda a chain)
