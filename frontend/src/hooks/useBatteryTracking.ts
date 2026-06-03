@@ -51,8 +51,21 @@ export function useBatteryTracking() {
   }
 }
 
+export interface BatteryInfo {
+  serialNumber: string
+  model: string
+  capacity: bigint
+  voltage: bigint
+  chemistry: string
+  niobiumBatchId: bigint
+  manufacturer: string
+  warrantyMonths: bigint
+  qrCode: string
+  tokenURI: string
+}
+
 export function useBatteryInfo(batteryId: number) {
-  const { data: battery, isLoading, error } = useReadContract({
+  const { data, isLoading, error } = useReadContract({
     address: CONTRACT_ADDRESSES.batteryTracking as `0x${string}`,
     abi: BATTERY_TRACKING_ABI,
     functionName: 'batteries',
@@ -60,7 +73,7 @@ export function useBatteryInfo(batteryId: number) {
   })
 
   return {
-    battery,
+    battery: data as BatteryInfo | undefined,
     isLoading,
     error,
   }

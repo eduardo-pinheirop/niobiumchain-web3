@@ -8,7 +8,7 @@ export function Vehicles() {
   const { isConnected } = useAccount()
   const [searchVehicleId, setSearchVehicleId] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const { vehicle, isLoading } = useVehicleInfo(Number(searchVehicleId))
+  const { vehicle } = useVehicleInfo(Number(searchVehicleId))
   const { createNewVehicle, isPending, isConfirming } = useVehicleTracking()
 
   const [formData, setFormData] = useState({

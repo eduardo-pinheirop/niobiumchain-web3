@@ -43,8 +43,17 @@ export function useVehicleTracking() {
   }
 }
 
+export interface VehicleInfo {
+  vin: string
+  make: string
+  model: string
+  year: bigint
+  vehicleType: string
+  currentLocation: string
+}
+
 export function useVehicleInfo(vehicleId: number) {
-  const { data: vehicle, isLoading, error } = useReadContract({
+  const { data, isLoading, error } = useReadContract({
     address: CONTRACT_ADDRESSES.vehicleTracking as `0x${string}`,
     abi: VEHICLE_TRACKING_ABI,
     functionName: 'vehicles',
@@ -52,7 +61,7 @@ export function useVehicleInfo(vehicleId: number) {
   })
 
   return {
-    vehicle,
+    vehicle: data as VehicleInfo | undefined,
     isLoading,
     error,
   }

@@ -1,5 +1,5 @@
 import { WalletConnect } from './WalletConnect'
-import { Package, BarChart3 } from 'lucide-react'
+import { Package } from 'lucide-react'
 
 export function Header() {
   return (

@@ -8,7 +8,7 @@ export function Batteries() {
   const { isConnected } = useAccount()
   const [searchBatteryId, setSearchBatteryId] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const { battery, isLoading } = useBatteryInfo(Number(searchBatteryId))
+  const { battery } = useBatteryInfo(Number(searchBatteryId))
   const { createNewBattery, isPending, isConfirming } = useBatteryTracking()
 
   const [formData, setFormData] = useState({

@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Button } from '../components/Button'
-import { useSupplyChain, useBatchHistory } from '../hooks/useSupplyChain'
+import { useBatchHistory } from '../hooks/useSupplyChain'
 import { Package, ChevronRight, CheckCircle, Clock, AlertCircle } from 'lucide-react'
 
 export function SupplyChain() {
   const { isConnected } = useAccount()
   const [searchBatchId, setSearchBatchId] = useState('')
-  const { history, isLoading } = useBatchHistory(Number(searchBatchId))
+  const { isLoading } = useBatchHistory(Number(searchBatchId))
 
   const steps = [
     { id: 1, name: 'Mineração', status: 'completed', time: '2025-05-30 10:00' },
