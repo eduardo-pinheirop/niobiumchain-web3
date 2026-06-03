@@ -2,8 +2,9 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 /**
  * @title QRCodeSystem
@@ -153,7 +154,7 @@ contract QRCodeSystem is AccessControl, Pausable {
 
         // Verificar assinatura do gerador
         bytes32 messageHash = keccak256(abi.encodePacked(qrHash, qrCodes[qrId].stepId, qrCodes[qrId].batchId));
-        address signer = ECDSA.recover(ECDSA.toEthSignedMessageHash(messageHash), signature);
+        address signer = ECDSA.recover(MessageHashUtils.toEthSignedMessageHash(messageHash), signature);
 
         return signer == qrCodes[qrId].generator && qrCodes[qrId].isValid;
     }

@@ -31,10 +31,11 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
-    "hardhat": "^2.22.0",
     "chai": "^4.4.1",
+    "dotenv": "^16.4.5",
     "ethers": "^6.12.0",
-    "dotenv": "^16.4.5"
+    "hardhat": "^2.22.15",
+    "stacktrace-parser": "^0.1.11"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2"

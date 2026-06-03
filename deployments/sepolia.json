@@ -1,0 +1,79 @@
+{
+  "network": "sepolia",
+  "deployer": "0x66682BBeD9e540017967692cCdd069fE5F833888",
+  "timestamp": "2026-06-03T01:06:01.229Z",
+  "contracts": {
+    "SupplyChain": "0x6bf1149D3DE1cf1a6Dfc7267310f844646868ba6",
+    "NiobiumDID": "0x1570cb4dfFEbDb74B0Ee4459C1889af6bcf5c5D0",
+    "QRCodeSystem": "0xB129009625296b0F92b1f7639af48ca2f8063429",
+    "CVOracle": "0x5151A34EaC7bA08cd6B540b32cD30316218A2287",
+    "MiningStep": "0x23222C45505576AC35A5f28458D02d8E715E48A7",
+    "TransportStep": "0x190A9D2f206dbeb72Ce8b88Dc2603745fB5f50dB",
+    "ProcessingStep": "0x5850F0809713810b2CA318A48ECA8667F665a9F8",
+    "PackagingStep": "0xFA75D96a1F0297FB1de7547B09837Ea98d434570",
+    "PortStep": "0x80BD976cB588cD2F9aD9Ac671FB19174E9F3172b",
+    "BatteryTracking": "0x0DE5DeE3B6946BD2A540558Fbb5E17163f296dC7",
+    "VehicleTracking": "0x6ae32434d9Ec8C188195326bf321dBe9Ee77C062",
+    "NiobiumToken": "0xa9e0Cc843d7C2D4f2Ead780CD2F806C080392415",
+    "CarbonCredit": "0x2056172c469a60E5290C27661CCF7D5785F8635B",
+    "BatteryPassport": "0x1Cf9d6cF0Fa979D09761D4f41bc78267f78977bE"
+  },
+  "deploymentOrder": [
+    {
+      "name": "SupplyChain",
+      "address": "0x6bf1149D3DE1cf1a6Dfc7267310f844646868ba6"
+    },
+    {
+      "name": "NiobiumDID",
+      "address": "0x1570cb4dfFEbDb74B0Ee4459C1889af6bcf5c5D0"
+    },
+    {
+      "name": "QRCodeSystem",
+      "address": "0xB129009625296b0F92b1f7639af48ca2f8063429"
+    },
+    {
+      "name": "CVOracle",
+      "address": "0x5151A34EaC7bA08cd6B540b32cD30316218A2287"
+    },
+    {
+      "name": "MiningStep",
+      "address": "0x23222C45505576AC35A5f28458D02d8E715E48A7"
+    },
+    {
+      "name": "TransportStep",
+      "address": "0x190A9D2f206dbeb72Ce8b88Dc2603745fB5f50dB"
+    },
+    {
+      "name": "ProcessingStep",
+      "address": "0x5850F0809713810b2CA318A48ECA8667F665a9F8"
+    },
+    {
+      "name": "PackagingStep",
+      "address": "0xFA75D96a1F0297FB1de7547B09837Ea98d434570"
+    },
+    {
+      "name": "PortStep",
+      "address": "0x80BD976cB588cD2F9aD9Ac671FB19174E9F3172b"
+    },
+    {
+      "name": "BatteryTracking",
+      "address": "0x0DE5DeE3B6946BD2A540558Fbb5E17163f296dC7"
+    },
+    {
+      "name": "VehicleTracking",
+      "address": "0x6ae32434d9Ec8C188195326bf321dBe9Ee77C062"
+    },
+    {
+      "name": "NiobiumToken",
+      "address": "0xa9e0Cc843d7C2D4f2Ead780CD2F806C080392415"
+    },
+    {
+      "name": "CarbonCredit",
+      "address": "0x2056172c469a60E5290C27661CCF7D5785F8635B"
+    },
+    {
+      "name": "BatteryPassport",
+      "address": "0x1Cf9d6cF0Fa979D09761D4f41bc78267f78977bE"
+    }
+  ]
+}

@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title BatteryTracking
@@ -141,7 +141,7 @@ contract BatteryTracking is ERC721, ERC721URIStorage, AccessControl, Pausable {
         require(!batteries[batteryId].inVehicle, "Battery is installed in vehicle");
 
         address from = batteries[batteryId].currentOwner;
-        _safeTransferFrom(from, to, batteryId);
+        _safeTransfer(from, to, batteryId);
         batteries[batteryId].currentOwner = to;
 
         emit BatteryTransferred(batteryId, from, to);
@@ -328,7 +328,7 @@ contract VehicleTracking is ERC721, ERC721URIStorage, AccessControl, Pausable {
         require(vehicles[vehicleId].isActive, "Vehicle is not active");
 
         address from = vehicles[vehicleId].currentOwner;
-        _safeTransferFrom(from, to, vehicleId);
+        _safeTransfer(from, to, vehicleId);
         vehicles[vehicleId].currentOwner = to;
 
         emit VehicleTransferred(vehicleId, from, to);

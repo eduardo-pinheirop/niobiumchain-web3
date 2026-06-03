@@ -56,7 +56,7 @@ contract MiningStep is AccessControl {
         string memory geologicalReport,
         string memory environmentalLicense
     ) public onlyRole(MINER_ROLE) {
-        require(supplyChain.steps(stepId).stepId != 0, "Step does not exist");
+        require(supplyChain.stepExists(stepId), "Step does not exist");
 
         miningData[stepId] = MiningData({
             stepId: stepId,
@@ -142,7 +142,7 @@ contract TransportStep is AccessControl {
         string memory departureLocation,
         string memory arrivalLocation
     ) public onlyRole(TRANSPORTER_ROLE) {
-        require(supplyChain.steps(stepId).stepId != 0, "Step does not exist");
+        require(supplyChain.stepExists(stepId), "Step does not exist");
 
         transportData[stepId] = TransportData({
             stepId: stepId,
@@ -249,7 +249,7 @@ contract ProcessingStep is AccessControl {
         string memory safetyCertificate,
         uint256 processingTime
     ) public onlyRole(PROCESSOR_ROLE) {
-        require(supplyChain.steps(stepId).stepId != 0, "Step does not exist");
+        require(supplyChain.stepExists(stepId), "Step does not exist");
 
         processingData[stepId] = ProcessingData({
             stepId: stepId,
@@ -326,7 +326,7 @@ contract PackagingStep is AccessControl {
         string memory qrCodePerPackage,
         string memory barcodeInfo
     ) public onlyRole(PACKAGER_ROLE) {
-        require(supplyChain.steps(stepId).stepId != 0, "Step does not exist");
+        require(supplyChain.stepExists(stepId), "Step does not exist");
 
         packagingData[stepId] = PackagingData({
             stepId: stepId,
@@ -403,7 +403,7 @@ contract PortStep is AccessControl {
         string memory inspectionReport,
         uint256 operationTime
     ) public onlyRole(PORT_OPERATOR_ROLE) {
-        require(supplyChain.steps(stepId).stepId != 0, "Step does not exist");
+        require(supplyChain.stepExists(stepId), "Step does not exist");
 
         portData[stepId] = PortData({
             stepId: stepId,

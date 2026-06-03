@@ -72,7 +72,7 @@ contract NiobiumDID is AccessControl, EIP712 {
         didCounter++;
 
         require(didDocuments[did].timestamp == 0, "DID already exists");
-        require(batchIdToDID[batchId].length == 0, "Batch already has DID");
+        require(bytes(batchIdToDID[batchId]).length == 0, "Batch already has DID");
 
         didDocuments[did] = DIDDocument({
             did: did,

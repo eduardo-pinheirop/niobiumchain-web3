@@ -9,6 +9,13 @@ async function main() {
 
   // Get deployer account
   const [deployer] = await hre.ethers.getSigners();
+  if (!deployer) {
+    throw new Error(
+      `Nenhuma conta disponível na rede "${hre.network.name}". ` +
+      "Verifique se PRIVATE_KEY no .env é uma chave privada válida de 64 caracteres hexadecimais " +
+      "(não o endereço da carteira)."
+    );
+  }
   console.log("📋 Deployer:", deployer.address);
   console.log("💰 Saldo:", hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), "ETH");
   console.log("🌐 Rede:", hre.network.name);

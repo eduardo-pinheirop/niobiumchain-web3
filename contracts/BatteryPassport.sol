@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title BatteryPassport
@@ -97,17 +97,15 @@ contract BatteryPassport is ERC721, ERC721URIStorage, AccessControl, Pausable {
         _safeMint(to, passportId);
         _setTokenURI(passportId, tokenURI);
 
-        batteries[passportId] = BatteryData({
-            serialNumber: serialNumber,
-            manufacturer: to,
-            model: model,
-            capacity: capacity,
-            manufacturingDate: block.timestamp,
-            components: new BatteryComponent[](0),
-            carbonFootprint: carbonFootprint,
-            recycledContent: recycledContent,
-            isValid: true
-        });
+        BatteryData storage battery = batteries[passportId];
+        battery.serialNumber = serialNumber;
+        battery.manufacturer = to;
+        battery.model = model;
+        battery.capacity = capacity;
+        battery.manufacturingDate = block.timestamp;
+        battery.carbonFootprint = carbonFootprint;
+        battery.recycledContent = recycledContent;
+        battery.isValid = true;
 
         serialToPassportId[serialNumber] = passportId;
 

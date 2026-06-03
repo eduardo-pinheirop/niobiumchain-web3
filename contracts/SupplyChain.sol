@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title SupplyChain
@@ -346,5 +346,13 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
      */
     function getStepByQRCode(string memory qrCodeHash) public view returns (uint256) {
         return qrCodeToStepId[qrCodeHash];
+    }
+
+    /**
+     * @dev Verifica se uma etapa existe
+     * @param stepId ID da etapa
+     */
+    function stepExists(uint256 stepId) public view returns (bool) {
+        return steps[stepId].stepId != 0;
     }
 }
