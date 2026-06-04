@@ -30,13 +30,91 @@ export interface ProtocolStats {
   recentActivity: ActivityItem[]
 }
 
+export interface WorkflowBatch {
+  batchId: bigint
+  operator: `0x${string}`
+  stepId: bigint
+}
+
+export interface WorkflowStage {
+  stepType: number
+  label: string
+  batches: WorkflowBatch[]
+}
+
+/**
+ * Reconstrói, a partir dos eventos StepCreated, a posição atual de cada lote
+ * no workflow (a etapa de maior stepId é a mais recente) e agrupa os lotes por
+ * tipo de etapa, indicando o operador responsável por cada um.
+ */
+export function useWorkflowState() {
+  const client = usePublicClient()
+
+  return useQuery<WorkflowStage[]>({
+    queryKey: ['workflow-state'],
+    enabled: !!client,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    queryFn: async () => {
+      if (!client) throw new Error('Public client indisponível')
+
+      const stepLogs = await client.getLogs({
+        address: CONTRACT_ADDRESSES.supplyChain,
+        event: STEP_CREATED,
+        fromBlock: DEPLOY_FROM_BLOCK,
+      })
+
+      // Para cada lote, mantém apenas a etapa mais recente (maior stepId).
+      const latestByBatch = new Map<string, WorkflowBatch & { stepType: number }>()
+      for (const log of stepLogs) {
+        const batchId = log.args.batchId
+        const stepId = log.args.stepId
+        const operator = log.args.operator
+        const stepType = Number(log.args.stepType ?? 0)
+        if (batchId === undefined || stepId === undefined || operator === undefined) continue
+
+        const key = batchId.toString()
+        const current = latestByBatch.get(key)
+        if (!current || stepId > current.stepId) {
+          latestByBatch.set(key, { batchId, stepId, operator, stepType })
+        }
+      }
+
+      // Inicializa todas as etapas do workflow (mesmo as vazias).
+      const stages: WorkflowStage[] = STEP_TYPES.map((label, stepType) => ({
+        stepType,
+        label,
+        batches: [],
+      }))
+
+      for (const entry of latestByBatch.values()) {
+        const stage = stages[entry.stepType]
+        if (stage) {
+          stage.batches.push({ batchId: entry.batchId, operator: entry.operator, stepId: entry.stepId })
+        }
+      }
+
+      for (const stage of stages) {
+        stage.batches.sort((a, b) => (a.batchId > b.batchId ? 1 : -1))
+      }
+
+      return stages
+    },
+  })
+}
+
 export function useProtocolStats() {
   const client = usePublicClient()
 
   return useQuery<ProtocolStats>({
     queryKey: ['protocol-stats'],
     enabled: !!client,
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    retry: 2,
     queryFn: async () => {
       if (!client) throw new Error('Public client indisponível')
 

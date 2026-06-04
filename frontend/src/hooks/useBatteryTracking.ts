@@ -1,8 +1,27 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { keccak256, toBytes } from 'viem'
 import { BATTERY_TRACKING_ABI, CONTRACT_ADDRESSES } from '../lib/contracts'
 
+// Papéis do contrato BatteryTracking (AccessControl da OpenZeppelin).
+export const BATTERY_MANUFACTURER_ROLE = keccak256(toBytes('MANUFACTURER_ROLE'))
+export const BATTERY_OPERATOR_ROLE = keccak256(toBytes('OPERATOR_ROLE'))
+
+/**
+ * Verifica se uma conta possui um papel no contrato BatteryTracking.
+ */
+export function useBatteryRole(role: `0x${string}`, account?: `0x${string}`) {
+  const { data, isLoading, refetch } = useReadContract({
+    address: CONTRACT_ADDRESSES.batteryTracking,
+    abi: BATTERY_TRACKING_ABI,
+    functionName: 'hasRole',
+    args: [role, (account ?? '0x0000000000000000000000000000000000000000') as `0x${string}`],
+    query: { enabled: !!account },
+  })
+  return { hasRole: data === true, isLoading, refetch }
+}
+
 export function useBatteryTracking() {
-  const { data: hash, writeContract, isPending } = useWriteContract()
+  const { data: hash, writeContract, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   })
@@ -43,11 +62,63 @@ export function useBatteryTracking() {
     }
   }
 
+  const transferBattery = (batteryId: bigint, to: `0x${string}`) => {
+    writeContract({
+      address: CONTRACT_ADDRESSES.batteryTracking,
+      abi: BATTERY_TRACKING_ABI,
+      functionName: 'transferBattery',
+      args: [batteryId, to] as const,
+    })
+  }
+
+  const updateBatteryLocation = (batteryId: bigint, location: string) => {
+    writeContract({
+      address: CONTRACT_ADDRESSES.batteryTracking,
+      abi: BATTERY_TRACKING_ABI,
+      functionName: 'updateLocation',
+      args: [batteryId, location] as const,
+    })
+  }
+
+  const installInVehicle = (batteryId: bigint, vehicleId: bigint) => {
+    writeContract({
+      address: CONTRACT_ADDRESSES.batteryTracking,
+      abi: BATTERY_TRACKING_ABI,
+      functionName: 'installInVehicle',
+      args: [batteryId, vehicleId] as const,
+    })
+  }
+
+  const removeFromVehicle = (batteryId: bigint) => {
+    writeContract({
+      address: CONTRACT_ADDRESSES.batteryTracking,
+      abi: BATTERY_TRACKING_ABI,
+      functionName: 'removeFromVehicle',
+      args: [batteryId] as const,
+    })
+  }
+
+  const deactivateBattery = (batteryId: bigint) => {
+    writeContract({
+      address: CONTRACT_ADDRESSES.batteryTracking,
+      abi: BATTERY_TRACKING_ABI,
+      functionName: 'deactivateBattery',
+      args: [batteryId] as const,
+    })
+  }
+
   return {
     createNewBattery,
+    transferBattery,
+    updateBatteryLocation,
+    installInVehicle,
+    removeFromVehicle,
+    deactivateBattery,
+    hash,
     isPending,
     isConfirming,
     isConfirmed,
+    error,
   }
 }
 

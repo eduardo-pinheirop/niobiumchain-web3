@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Button } from '../components/Button'
-import { useSupplyChain } from '../hooks/useSupplyChain'
+import { useSupplyChain, useOperatorRole, parseTxError, OPERATOR_HINT_ADDRESS } from '../hooks/useSupplyChain'
 import { useProtocolStats } from '../hooks/useProtocolStats'
 import { STEP_TYPES } from '../lib/contracts'
-import { Package, Battery, Car, TrendingUp } from 'lucide-react'
+import { Package, Battery, Car, TrendingUp, ShieldAlert } from 'lucide-react'
 
 export function Dashboard() {
-  const { isConnected } = useAccount()
+  const { address, isConnected } = useAccount()
+  const { isOperator, isLoading: isRoleLoading } = useOperatorRole(address)
   const { createNewBatch, isPending, isConfirming, isConfirmed, error } = useSupplyChain()
+  const txError = parseTxError(error)
+  const canCreate = isConnected && isOperator
   const { data: protocol, isLoading: statsLoading, refetch } = useProtocolStats()
 
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -61,6 +64,24 @@ export function Dashboard() {
         </div>
       )}
 
+      {isConnected && !isRoleLoading && !isOperator && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-8">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="w-6 h-6 text-amber-600 shrink-0" />
+            <div>
+              <h3 className="font-medium text-amber-800">Conta sem permissão de operador</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                A conta conectada (<code className="bg-amber-100 px-1 rounded">{address}</code>) não tem o papel{' '}
+                <strong>OPERATOR</strong>. Conecte a conta operadora do deploy para criar lotes:
+              </p>
+              <code className="block mt-1 text-xs bg-amber-100 text-amber-900 rounded px-2 py-1 break-all">
+                {OPERATOR_HINT_ADDRESS}
+              </code>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat) => (
@@ -82,7 +103,8 @@ export function Dashboard() {
           <h2 className="text-lg font-semibold text-gray-900">Ações Rápidas</h2>
           <Button
             onClick={() => setShowCreateForm((v) => !v)}
-            disabled={!isConnected}
+            disabled={!canCreate}
+            title={!isConnected ? 'Conecte sua carteira' : !isOperator ? 'Sua conta não tem permissão de operador' : undefined}
           >
             {showCreateForm ? 'Fechar' : 'Criar Novo Lote'}
           </Button>
@@ -136,13 +158,11 @@ export function Dashboard() {
               <p className="mt-1 text-xs text-gray-400 text-right">{batchForm.observation.length}/140</p>
             </div>
             <div className="md:col-span-3 flex items-center gap-4">
-              <Button type="submit" disabled={isPending || isConfirming}>
+              <Button type="submit" disabled={isPending || isConfirming || !canCreate}>
                 {isPending ? 'Confirme na carteira...' : isConfirming ? 'Confirmando...' : 'Criar Lote'}
               </Button>
-              {error && (
-                <span className="text-sm text-red-600 truncate" title={error.message}>
-                  {error.message.split('\n')[0]}
-                </span>
+              {txError && (
+                <span className="text-sm text-red-600">{txError}</span>
               )}
             </div>
           </form>

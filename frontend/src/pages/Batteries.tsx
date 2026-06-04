@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { isAddress } from 'viem'
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '../components/Button'
-import { useBatteryTracking, useBatteryInfo } from '../hooks/useBatteryTracking'
-import { Battery } from 'lucide-react'
+import {
+  useBatteryTracking,
+  useBatteryInfo,
+  useBatteryRole,
+  BATTERY_MANUFACTURER_ROLE,
+  BATTERY_OPERATOR_ROLE,
+} from '../hooks/useBatteryTracking'
+import { parseTxError } from '../hooks/useSupplyChain'
+import { Battery, ShieldAlert } from 'lucide-react'
 
 export function Batteries() {
-  const { isConnected } = useAccount()
+  const { address, isConnected } = useAccount()
   const [batteryInput, setBatteryInput] = useState('')
   const [searchBatteryId, setSearchBatteryId] = useState<number | null>(null)
   const [showQR, setShowQR] = useState(false)
@@ -15,7 +23,23 @@ export function Batteries() {
     searchBatteryId ?? 0,
     searchBatteryId !== null,
   )
-  const { createNewBattery, isPending, isConfirming, isConfirmed } = useBatteryTracking()
+  const {
+    createNewBattery,
+    transferBattery,
+    updateBatteryLocation,
+    installInVehicle,
+    removeFromVehicle,
+    deactivateBattery,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  } = useBatteryTracking()
+  const { hasRole: isManufacturer } = useBatteryRole(BATTERY_MANUFACTURER_ROLE, address)
+  const { hasRole: isOperator } = useBatteryRole(BATTERY_OPERATOR_ROLE, address)
+  const txError = parseTxError(error)
+  const canCreate = isConnected && isManufacturer
+  const canOperate = isConnected && isOperator
 
   useEffect(() => {
     if (isConfirmed) {
@@ -23,6 +47,42 @@ export function Batteries() {
       refetch()
     }
   }, [isConfirmed, refetch])
+
+  const handleUpdateLocation = (batteryId: bigint) => {
+    const location = window.prompt('Nova localização:')
+    if (location) updateBatteryLocation(batteryId, location)
+  }
+
+  const handleTransfer = (batteryId: bigint) => {
+    const to = window.prompt('Endereço do novo proprietário (0x...):')
+    if (!to) return
+    if (!isAddress(to.trim())) {
+      window.alert('Endereço Ethereum inválido.')
+      return
+    }
+    transferBattery(batteryId, to.trim() as `0x${string}`)
+  }
+
+  const handleInstall = (batteryId: bigint) => {
+    const vehicleId = window.prompt('ID do veículo onde instalar:')
+    if (vehicleId === null || vehicleId === '') return
+    const parsed = Number(vehicleId)
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      window.alert('ID de veículo inválido.')
+      return
+    }
+    installInVehicle(batteryId, BigInt(parsed))
+  }
+
+  const handleRemoveFromVehicle = (batteryId: bigint) => {
+    if (window.confirm('Remover esta bateria do veículo?')) removeFromVehicle(batteryId)
+  }
+
+  const handleDeactivate = (batteryId: bigint) => {
+    if (window.confirm('Desativar permanentemente esta bateria (fim de vida útil)?')) {
+      deactivateBattery(batteryId)
+    }
+  }
 
   const [formData, setFormData] = useState({
     serialNumber: '',
@@ -67,11 +127,27 @@ export function Batteries() {
         </div>
         <Button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          disabled={!isConnected}
+          disabled={!canCreate}
+          title={!isConnected ? 'Conecte sua carteira' : !isManufacturer ? 'Sua conta não tem o papel MANUFACTURER' : undefined}
         >
           Nova Bateria
         </Button>
       </div>
+
+      {isConnected && !isManufacturer && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-8">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="w-6 h-6 text-amber-600 shrink-0" />
+            <div>
+              <h3 className="font-medium text-amber-800">Conta sem permissão de fabricante</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                A conta conectada não tem o papel <strong>MANUFACTURER</strong>, necessário para criar baterias.
+                Peça a um administrador para conceder o papel no contrato BatteryTracking.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!isConnected && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
@@ -193,12 +269,13 @@ export function Batteries() {
               />
             </div>
             <div className="md:col-span-2 flex gap-4">
-              <Button type="submit" disabled={isPending || isConfirming}>
+              <Button type="submit" disabled={isPending || isConfirming || !canCreate}>
                 {isPending ? 'Criando...' : isConfirming ? 'Confirmando...' : 'Criar Bateria'}
               </Button>
               <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
                 Cancelar
               </Button>
+              {txError && <span className="text-sm text-red-600 self-center">{txError}</span>}
             </div>
           </form>
         </div>
@@ -284,7 +361,48 @@ export function Batteries() {
                   <p className="text-sm text-gray-600">Instalada em Veículo</p>
                   <p className="font-medium text-gray-900">{battery.inVehicle ? `Veículo #${battery.vehicleId.toString()}` : 'Não'}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-gray-600">Status</p>
+                  <p className="font-medium text-gray-900">{battery.isActive ? 'Ativa' : 'Inativa'}</p>
+                </div>
               </div>
+
+              {/* Ações do Operador */}
+              {canOperate ? (
+                <div className="mt-6 border-t border-gray-100 pt-6">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Ações</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" disabled={isPending || isConfirming} onClick={() => handleUpdateLocation(battery.batteryId)}>
+                      Atualizar Localização
+                    </Button>
+                    {!battery.inVehicle ? (
+                      <Button size="sm" variant="outline" disabled={isPending || isConfirming} onClick={() => handleInstall(battery.batteryId)}>
+                        Instalar em Veículo
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" disabled={isPending || isConfirming} onClick={() => handleRemoveFromVehicle(battery.batteryId)}>
+                        Remover do Veículo
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" disabled={isPending || isConfirming || battery.inVehicle} onClick={() => handleTransfer(battery.batteryId)} title={battery.inVehicle ? 'Não é possível transferir bateria instalada em veículo' : undefined}>
+                      Transferir
+                    </Button>
+                    <Button size="sm" variant="ghost" disabled={isPending || isConfirming || !battery.isActive} onClick={() => handleDeactivate(battery.batteryId)}>
+                      Desativar
+                    </Button>
+                  </div>
+                  {(isPending || isConfirming) && (
+                    <p className="mt-2 text-sm text-gray-500">{isPending ? 'Confirme na carteira...' : 'Confirmando transação...'}</p>
+                  )}
+                  {txError && <p className="mt-2 text-sm text-red-600">{txError}</p>}
+                </div>
+              ) : (
+                isConnected && (
+                  <p className="mt-6 border-t border-gray-100 pt-6 text-sm text-gray-400">
+                    Sua conta não tem o papel OPERATOR neste contrato; ações de movimentação estão indisponíveis.
+                  </p>
+                )
+              )}
             </>
           )}
         </div>

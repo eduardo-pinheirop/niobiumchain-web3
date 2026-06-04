@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard'
 import { SupplyChain } from './pages/SupplyChain'
 import { Batteries } from './pages/Batteries'
 import { Vehicles } from './pages/Vehicles'
+import { Admin } from './pages/Admin'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,7 +19,7 @@ const queryClient = new QueryClient({
   },
 })
 
-type Page = 'dashboard' | 'supplychain' | 'batteries' | 'vehicles'
+type Page = 'dashboard' | 'supplychain' | 'batteries' | 'vehicles' | 'admin'
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
@@ -33,6 +34,8 @@ function App() {
         return <Batteries />
       case 'vehicles':
         return <Vehicles />
+      case 'admin':
+        return <Admin />
       default:
         return <Dashboard />
     }
@@ -98,6 +101,16 @@ function App() {
                   }`}
                 >
                   Veículos
+                </button>
+                <button
+                  onClick={() => setCurrentPage('admin')}
+                  className={`px-3 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    currentPage === 'admin'
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Admin
                 </button>
               </div>
             </div>

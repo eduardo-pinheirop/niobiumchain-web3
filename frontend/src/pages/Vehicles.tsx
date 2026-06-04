@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { isAddress } from 'viem'
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '../components/Button'
-import { useVehicleTracking, useVehicleInfo } from '../hooks/useVehicleTracking'
-import { Car } from 'lucide-react'
+import {
+  useVehicleTracking,
+  useVehicleInfo,
+  useVehicleRole,
+  useVehicleBatteries,
+  VEHICLE_MANUFACTURER_ROLE,
+  VEHICLE_OPERATOR_ROLE,
+} from '../hooks/useVehicleTracking'
+import { parseTxError } from '../hooks/useSupplyChain'
+import { Car, ShieldAlert } from 'lucide-react'
 
 export function Vehicles() {
-  const { isConnected } = useAccount()
+  const { address, isConnected } = useAccount()
   const [vehicleInput, setVehicleInput] = useState('')
   const [searchVehicleId, setSearchVehicleId] = useState<number | null>(null)
   const [showQR, setShowQR] = useState(false)
@@ -15,14 +24,66 @@ export function Vehicles() {
     searchVehicleId ?? 0,
     searchVehicleId !== null,
   )
-  const { createNewVehicle, isPending, isConfirming, isConfirmed } = useVehicleTracking()
+  const { batteryIds, refetch: refetchBatteries } = useVehicleBatteries(
+    searchVehicleId ?? 0,
+    searchVehicleId !== null,
+  )
+  const {
+    createNewVehicle,
+    transferVehicle,
+    updateVehicleLocation,
+    addBattery,
+    removeBattery,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  } = useVehicleTracking()
+  const { hasRole: isManufacturer } = useVehicleRole(VEHICLE_MANUFACTURER_ROLE, address)
+  const { hasRole: isOperator } = useVehicleRole(VEHICLE_OPERATOR_ROLE, address)
+  const txError = parseTxError(error)
+  const canCreate = isConnected && isManufacturer
+  const canOperate = isConnected && isOperator
 
   useEffect(() => {
     if (isConfirmed) {
       setShowCreateForm(false)
       refetch()
+      refetchBatteries()
     }
-  }, [isConfirmed, refetch])
+  }, [isConfirmed, refetch, refetchBatteries])
+
+  const handleUpdateLocation = (vehicleId: bigint) => {
+    const location = window.prompt('Nova localização:')
+    if (location) updateVehicleLocation(vehicleId, location)
+  }
+
+  const handleTransfer = (vehicleId: bigint) => {
+    const to = window.prompt('Endereço do novo proprietário (0x...):')
+    if (!to) return
+    if (!isAddress(to.trim())) {
+      window.alert('Endereço Ethereum inválido.')
+      return
+    }
+    transferVehicle(vehicleId, to.trim() as `0x${string}`)
+  }
+
+  const handleAddBattery = (vehicleId: bigint) => {
+    const batteryId = window.prompt('ID da bateria a adicionar:')
+    if (batteryId === null || batteryId === '') return
+    const parsed = Number(batteryId)
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      window.alert('ID de bateria inválido.')
+      return
+    }
+    addBattery(vehicleId, BigInt(parsed))
+  }
+
+  const handleRemoveBattery = (vehicleId: bigint, batteryId: bigint) => {
+    if (window.confirm(`Remover a bateria #${batteryId.toString()} deste veículo?`)) {
+      removeBattery(vehicleId, batteryId)
+    }
+  }
 
   const [formData, setFormData] = useState({
     vin: '',
@@ -59,11 +120,27 @@ export function Vehicles() {
         </div>
         <Button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          disabled={!isConnected}
+          disabled={!canCreate}
+          title={!isConnected ? 'Conecte sua carteira' : !isManufacturer ? 'Sua conta não tem o papel MANUFACTURER' : undefined}
         >
           Novo Veículo
         </Button>
       </div>
+
+      {isConnected && !isManufacturer && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-8">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="w-6 h-6 text-amber-600 shrink-0" />
+            <div>
+              <h3 className="font-medium text-amber-800">Conta sem permissão de fabricante</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                A conta conectada não tem o papel <strong>MANUFACTURER</strong>, necessário para criar veículos.
+                Peça a um administrador para conceder o papel no contrato VehicleTracking.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!isConnected && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
@@ -145,12 +222,13 @@ export function Vehicles() {
               />
             </div>
             <div className="md:col-span-2 flex gap-4">
-              <Button type="submit" disabled={isPending || isConfirming}>
+              <Button type="submit" disabled={isPending || isConfirming || !canCreate}>
                 {isPending ? 'Criando...' : isConfirming ? 'Confirmando...' : 'Criar Veículo'}
               </Button>
               <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
                 Cancelar
               </Button>
+              {txError && <span className="text-sm text-red-600 self-center">{txError}</span>}
             </div>
           </form>
         </div>
@@ -224,7 +302,66 @@ export function Vehicles() {
                   <p className="text-sm text-gray-600">Localização</p>
                   <p className="font-medium text-gray-900">{vehicle.currentLocation}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-gray-600">Status</p>
+                  <p className="font-medium text-gray-900">{vehicle.isActive ? 'Ativo' : 'Inativo'}</p>
+                </div>
               </div>
+
+              {/* Baterias Instaladas */}
+              <div className="mt-6 border-t border-gray-100 pt-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Baterias Instaladas</h3>
+                {batteryIds.length === 0 ? (
+                  <p className="text-sm text-gray-500">Nenhuma bateria registrada neste veículo.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {batteryIds.map((id) => (
+                      <span key={id.toString()} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-sm text-gray-800">
+                        Bateria #{id.toString()}
+                        {canOperate && (
+                          <button
+                            type="button"
+                            disabled={isPending || isConfirming}
+                            onClick={() => handleRemoveBattery(vehicle.vehicleId, id)}
+                            className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                            title="Remover bateria do veículo"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Ações do Operador */}
+              {canOperate ? (
+                <div className="mt-6 border-t border-gray-100 pt-6">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Ações</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" disabled={isPending || isConfirming} onClick={() => handleUpdateLocation(vehicle.vehicleId)}>
+                      Atualizar Localização
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={isPending || isConfirming} onClick={() => handleAddBattery(vehicle.vehicleId)}>
+                      Adicionar Bateria
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={isPending || isConfirming} onClick={() => handleTransfer(vehicle.vehicleId)}>
+                      Transferir
+                    </Button>
+                  </div>
+                  {(isPending || isConfirming) && (
+                    <p className="mt-2 text-sm text-gray-500">{isPending ? 'Confirme na carteira...' : 'Confirmando transação...'}</p>
+                  )}
+                  {txError && <p className="mt-2 text-sm text-red-600">{txError}</p>}
+                </div>
+              ) : (
+                isConnected && (
+                  <p className="mt-6 border-t border-gray-100 pt-6 text-sm text-gray-400">
+                    Sua conta não tem o papel OPERATOR neste contrato; ações de movimentação estão indisponíveis.
+                  </p>
+                )
+              )}
             </>
           )}
         </div>

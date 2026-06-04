@@ -42,6 +42,43 @@ const SUPPLY_CHAIN_STEP_COMPONENTS = [
 
 export const SUPPLY_CHAIN_ABI = [
   {
+    inputs: [],
+    name: 'OPERATOR_ROLE',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bytes32', name: 'role', type: 'bytes32' },
+      { internalType: 'address', name: 'account', type: 'address' },
+    ],
+    name: 'hasRole',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bytes32', name: 'role', type: 'bytes32' },
+      { internalType: 'address', name: 'account', type: 'address' },
+    ],
+    name: 'grantRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bytes32', name: 'role', type: 'bytes32' },
+      { internalType: 'address', name: 'account', type: 'address' },
+    ],
+    name: 'revokeRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [
       { internalType: 'string', name: 'did', type: 'string' },
       { internalType: 'uint8', name: 'initialStepType', type: 'uint8' },
@@ -63,6 +100,44 @@ export const SUPPLY_CHAIN_ABI = [
     ],
     name: 'createStep',
     outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'stepId', type: 'uint256' },
+      { internalType: 'string', name: 'qrCodeHash', type: 'string' },
+    ],
+    name: 'startStep',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'stepId', type: 'uint256' },
+      { internalType: 'string', name: 'cvDataHash', type: 'string' },
+      { internalType: 'string', name: 'metadata', type: 'string' },
+    ],
+    name: 'completeStep',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'stepId', type: 'uint256' },
+      { internalType: 'string', name: 'reason', type: 'string' },
+    ],
+    name: 'failStep',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'stepId', type: 'uint256' }],
+    name: 'skipStep',
+    outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -153,6 +228,60 @@ export const BATTERY_TRACKING_ABI = [
     type: 'function',
   },
   {
+    inputs: [
+      { internalType: 'uint256', name: 'batteryId', type: 'uint256' },
+      { internalType: 'address', name: 'to', type: 'address' },
+    ],
+    name: 'transferBattery',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'batteryId', type: 'uint256' },
+      { internalType: 'string', name: 'location', type: 'string' },
+    ],
+    name: 'updateLocation',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'batteryId', type: 'uint256' },
+      { internalType: 'uint256', name: 'vehicleId', type: 'uint256' },
+    ],
+    name: 'installInVehicle',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'batteryId', type: 'uint256' }],
+    name: 'removeFromVehicle',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'batteryId', type: 'uint256' }],
+    name: 'deactivateBattery',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bytes32', name: 'role', type: 'bytes32' },
+      { internalType: 'address', name: 'account', type: 'address' },
+    ],
+    name: 'hasRole',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     // getter automático do mapping `batteries` (Battery não possui campos array)
     inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     name: 'batteries',
@@ -207,6 +336,56 @@ export const VEHICLE_TRACKING_ABI = [
     type: 'function',
   },
   {
+    inputs: [
+      { internalType: 'uint256', name: 'vehicleId', type: 'uint256' },
+      { internalType: 'address', name: 'to', type: 'address' },
+    ],
+    name: 'transferVehicle',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'vehicleId', type: 'uint256' },
+      { internalType: 'string', name: 'location', type: 'string' },
+    ],
+    name: 'updateLocation',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'vehicleId', type: 'uint256' },
+      { internalType: 'uint256', name: 'batteryId', type: 'uint256' },
+    ],
+    name: 'addBattery',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'vehicleId', type: 'uint256' },
+      { internalType: 'uint256', name: 'batteryId', type: 'uint256' },
+    ],
+    name: 'removeBattery',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bytes32', name: 'role', type: 'bytes32' },
+      { internalType: 'address', name: 'account', type: 'address' },
+    ],
+    name: 'hasRole',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     // getter automático do mapping `vehicles` (omite o array batteryIds)
     inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     name: 'vehicles',
@@ -248,10 +427,10 @@ export const VEHICLE_TRACKING_ABI = [
 
 // Endereços dos contratos (lidos do .env; fallback = deploy Sepolia)
 export const CONTRACT_ADDRESSES = {
-  supplyChain: (import.meta.env.VITE_SUPPLY_CHAIN_ADDRESS || '0x7f76C4F89E70C31B12Ba14bfB943Ce206cf1809b') as `0x${string}`,
-  niobiumDID: (import.meta.env.VITE_NIOBIUM_DID_ADDRESS || '0xd14430836CF34B3B97b1D87B52FF47bff03b3F8a') as `0x${string}`,
-  batteryTracking: (import.meta.env.VITE_BATTERY_TRACKING_ADDRESS || '0x812E3EfE3dE707A1bf92d35761473722dA843974') as `0x${string}`,
-  vehicleTracking: (import.meta.env.VITE_VEHICLE_TRACKING_ADDRESS || '0xD12392bD00E2F31899165311183380e996C56A48') as `0x${string}`,
+  supplyChain: (import.meta.env.VITE_SUPPLY_CHAIN_ADDRESS || '0xa8D4C4a0112E3E97f1EEaa3A5049e863DB384835') as `0x${string}`,
+  niobiumDID: (import.meta.env.VITE_NIOBIUM_DID_ADDRESS || '0x1ce2Ff12db18e690D03A119e212469C697824097') as `0x${string}`,
+  batteryTracking: (import.meta.env.VITE_BATTERY_TRACKING_ADDRESS || '0xbdC5a2DE14ac2530bC4D8Ca4D8572040F85B2938') as `0x${string}`,
+  vehicleTracking: (import.meta.env.VITE_VEHICLE_TRACKING_ADDRESS || '0x86fE62cb65C036412dC100035DeacD5A9345D86F') as `0x${string}`,
 } as const;
 
 // Bloco a partir do qual buscar eventos (evita varrer toda a chain)
